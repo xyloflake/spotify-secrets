@@ -68,6 +68,7 @@ Object.defineProperty(this,'secret',{value:v,writable:true,configurable:true,enu
 
 	const browser = await puppeteer.launch({
 		headless: true,
+		executablePath: process.env.CHROMIUM_PATH || undefined,
 		args: ["--no-sandbox", "--disable-setuid-sandbox"],
 	});
 

@@ -16,7 +16,7 @@
   "type": "module",
   "dependencies": {
     "@biomejs/biome": "^2.1.1",
-    "puppeteer": "21.11.0",
+    "puppeteer-core": "21.11.0",
     "puppeteer-extra": "3.3.6",
     "puppeteer-extra-plugin-stealth": "2.11.2"
   }
