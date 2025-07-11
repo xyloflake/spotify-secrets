@@ -50,15 +50,16 @@ function summarise(caps: Capture[]): void {
 		secret,
 	}));
 
-	const secretBytes: Record<string, number[]> = {};
-	sortedEntries.forEach(([v, s]) => {
-		secretBytes[v] = Array.from(s).map((c) => c.charCodeAt(0));
-	});
+	const secretBytes = formattedData.map(({ version, secret }) => ({
+		version,
+		secret: Array.from(secret).map((c) => c.charCodeAt(0)),
+	}));
 
 	Bun.write("secrets/secrets.json", JSON.stringify(formattedData, null, 2));
-	console.log(secretBytes);
 	Bun.write("secrets/secretBytes.json", JSON.stringify(secretBytes));
+
 	console.log(formattedData);
+	console.log(secretBytes);
 }
 
 async function grabLive(): Promise<Capture[]> {
