@@ -20,4 +20,36 @@ To run:
 bun start
 ```
 
+## Using the JSON Data
+
+The scraper generates two JSON files that are updated hourly:
+
+### Raw JSON URLs
+
+- `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secrets.json?raw=true`
+- `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretBytes.json?raw=true`
+
+### TypeScript Interface
+
+Both files use the same unified format:
+
+```typescript
+interface SpotifySecrets {
+	secret: string | number[];
+	version: number;
+}[];
+```
+
+### Usage Example
+
+```typescript
+// Fetch secrets
+const response = await fetch('https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secrets.json?raw=true');
+const secrets: SpotifySecrets = await response.json();
+
+// Get latest version
+const latestSecret = secrets[secrets.length - 1];
+console.log(`Version ${latestSecret.version}: ${latestSecret.secret}`);
+```
+
 This project was created using `bun init` in bun v1.2.18. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
