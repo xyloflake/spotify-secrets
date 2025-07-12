@@ -22,16 +22,44 @@ bun start
 
 ## Using the JSON Data
 
-The scraper generates two JSON files that are updated hourly:
+The scraper generates three JSON files that are updated hourly and exposed via raw JSON URLs:
 
-### Raw JSON URLs
+### Plain Secrets (array)
 
-- `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secrets.json?raw=true`
-- `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretBytes.json?raw=true`
+**URL**: `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secrets.json?raw=true`
+
+Returns a JSON array of following objects: `{ "version": number, "secret": string }`
+
+```json
+[ { "version": 12, "secret": "secret12" }, { "version": 13, "secret": "secret13" } ]
+```
+
+### Secret Bytes (array)
+
+**URL**: `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretBytes.json?raw=true`
+
+Returns a JSON array of following objects: `{ "version": number, "secret": number[] }`
+
+```json
+[ { "version": 12, "secret": [115, 101, 99, 114, 101, 116, 49, 50] }, { "version": 13, "secret": [115, 101, 99, 114, 101, 116, 49, 51] } ]
+```
+
+### Secret Bytes (object/dict)
+
+**URL**: `https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretDict.json?raw=true`
+
+Returns a JSON object mapping each version to its array of byte values: `{ [version: string]: number[] }`
+
+Example:
+```json
+{ "12": [115, 101, 99, 114, 101, 116, 49, 50], "13": [115, 101, 99, 114, 101, 116, 49, 51] }
+```
 
 ### TypeScript Interface
 
-Both files use the same unified format:
+The scraper outputs secrets in one of two unified formats:
+
+**Array format** (`secrets.json`, `secretBytes.json`):
 
 ```typescript
 interface SpotifySecrets {
@@ -40,7 +68,15 @@ interface SpotifySecrets {
 }[];
 ```
 
-### Usage Example
+**Object/Dict format** (`secretDict.json`):
+
+```typescript
+interface SpotifySecretsDict {
+  [version: string]: number[]
+}
+```
+
+### Usage Example (TypeScript)
 
 ```typescript
 // Fetch secrets
@@ -50,6 +86,19 @@ const secrets: SpotifySecrets = await response.json();
 // Get latest version
 const latestSecret = secrets[secrets.length - 1];
 console.log(`Version ${latestSecret.version}: ${latestSecret.secret}`);
+```
+
+### Usage Example (Python)
+
+```python
+import requests
+
+# Fetch secrets
+secrets = requests.get("https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretDict.json?raw=true").json()
+
+# Get latest version
+latest_secret = secrets[(v := max(secrets, key=int))]
+print(f"Version {v}: {latest_secret}")
 ```
 
 This project was created using `bun init` in bun v1.2.18. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
