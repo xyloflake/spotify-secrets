@@ -55,11 +55,20 @@ function summarise(caps: Capture[]): void {
 		secret: Array.from(secret).map((c) => c.charCodeAt(0)),
 	}));
 
+	const secretDict = Object.fromEntries(
+	    formattedData.map(({ version, secret }) => [
+	        String(version),
+	        Array.from(secret).map((c) => c.charCodeAt(0)),
+	    ]),
+	);
+
 	Bun.write("secrets/secrets.json", JSON.stringify(formattedData, null, 2));
 	Bun.write("secrets/secretBytes.json", JSON.stringify(secretBytes));
+	Bun.write("secrets/secretDict.json", JSON.stringify(secretDict, null, 2));
 
 	console.log(formattedData);
 	console.log(secretBytes);
+	console.log(secretDict);
 }
 
 async function grabLive(): Promise<Capture[]> {
