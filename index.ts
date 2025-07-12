@@ -7,16 +7,19 @@ const BUNDLE_RE =
 	/(?:vendor~web-player|encore~web-player|web-player)\.[0-9a-f]{4,}\.(?:js|mjs)/;
 const TIMEOUT = 45000; // 45s
 
-interface Capture {
-	secret?: string;
-	version?: string | number;
-	obj?: {
-		version?: string | number;
-		[key: string]: any;
-	};
+interface Secret {
+	version: number;
+	secret: string;
 }
 
-function summarise(caps: Capture[]): void {
+interface SecretBytes {
+	version: number;
+	secret: number[];
+}
+
+type SecretDict = Record<string, number[]>;
+
+function summarise(caps: any[]): void {
 	const real: Record<string, string> = {};
 
 	for (const cap of caps) {
@@ -45,33 +48,37 @@ function summarise(caps: Capture[]): void {
 		(a, b) => parseInt(a[0]) - parseInt(b[0]),
 	);
 
-	const formattedData = sortedEntries.map(([version, secret]) => ({
-		version: parseInt(version),
-		secret,
-	}));
+	const formattedData: Secret[] = sortedEntries.map(
+		([version, secret]) => ({
+			version: parseInt(version),
+			secret,
+		}),
+	);
 
-	const secretBytes = formattedData.map(({ version, secret }) => ({
-		version,
-		secret: Array.from(secret).map((c) => c.charCodeAt(0)),
-	}));
+	const secretBytes: SecretBytes[] = formattedData.map(
+		({ version, secret }) => ({
+			version,
+			secret: Array.from(secret).map((c) => c.charCodeAt(0)),
+		}),
+	);
 
-	const secretDict = Object.fromEntries(
-	    formattedData.map(({ version, secret }) => [
-	        String(version),
-	        Array.from(secret).map((c) => c.charCodeAt(0)),
-	    ]),
+	const secretDict: SecretDict = Object.fromEntries(
+		formattedData.map(({ version, secret }) => [
+			String(version),
+			Array.from(secret).map((c) => c.charCodeAt(0)),
+		]),
 	);
 
 	Bun.write("secrets/secrets.json", JSON.stringify(formattedData, null, 2));
 	Bun.write("secrets/secretBytes.json", JSON.stringify(secretBytes));
-	Bun.write("secrets/secretDict.json", JSON.stringify(secretDict, null, 2));
+	Bun.write("secrets/secretDict.json", JSON.stringify(secretDict));
 
 	console.log(formattedData);
 	console.log(secretBytes);
 	console.log(secretDict);
 }
 
-async function grabLive(): Promise<Capture[]> {
+async function grabLive(): Promise<any[]> {
 	const hook = `(()=>{if(globalThis.__secretHookInstalled)return;globalThis.__secretHookInstalled=true;globalThis.__captures=[];
 Object.defineProperty(Object.prototype,'secret',{configurable:true,set:function(v){try{__captures.push({secret:v,version:this.version,obj:this});}catch(e){}
 Object.defineProperty(this,'secret',{value:v,writable:true,configurable:true,enumerable:true});}});})();`;
@@ -101,12 +108,11 @@ Object.defineProperty(this,'secret',{value:v,writable:true,configurable:true,enu
 			timeout: TIMEOUT,
 		});
 
-		// Additional wait for dynamic content - works in Puppeteer v21
 		await page.waitForTimeout(3000);
 
 		const caps = (await page.evaluate(() => {
 			return (globalThis as any).__captures || [];
-		})) as Capture[];
+		})) as any[];
 
 		if (caps.length > 0) {
 			for (const c of caps) {
