@@ -50,7 +50,6 @@ Returns a JSON array of following objects: `{ "version": number, "secret": numbe
 
 Returns a JSON object mapping each version to its array of byte values: `{ [version: string]: number[] }`
 
-Example:
 ```json
 { "12": [115, 101, 99, 114, 101, 116, 49, 50], "13": [115, 101, 99, 114, 101, 116, 49, 51] }
 ```
