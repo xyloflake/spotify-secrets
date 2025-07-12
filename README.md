@@ -93,7 +93,8 @@ console.log(`Version ${latestSecret.version}: ${latestSecret.secret}`);
 import requests
 
 # Fetch secrets
-secrets = requests.get("https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretDict.json?raw=true").json()
+response = requests.get("https://github.com/Thereallo1026/spotify-secrets/blob/main/secrets/secretDict.json?raw=true")
+secrets = response.json()
 
 # Get latest version
 latest_secret = secrets[(v := max(secrets, key=int))]
