@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import { secretBytesToB32 } from "./utils";
 
 puppeteer.use(StealthPlugin());
 
@@ -15,6 +16,11 @@ interface Secret {
 interface SecretBytes {
 	version: number;
 	secret: number[];
+}
+
+interface SecretBase32 {
+	version: number;
+	secret: string;
 }
 
 type SecretDict = Record<string, number[]>;
@@ -48,12 +54,10 @@ function summarise(caps: any[]): void {
 		(a, b) => parseInt(a[0]) - parseInt(b[0]),
 	);
 
-	const formattedData: Secret[] = sortedEntries.map(
-		([version, secret]) => ({
-			version: parseInt(version),
-			secret,
-		}),
-	);
+	const formattedData: Secret[] = sortedEntries.map(([version, secret]) => ({
+		version: parseInt(version),
+		secret,
+	}));
 
 	const secretBytes: SecretBytes[] = formattedData.map(
 		({ version, secret }) => ({
@@ -69,7 +73,16 @@ function summarise(caps: any[]): void {
 		]),
 	);
 
+	const secretBase32: SecretBase32 = {
+		secret: secretBytesToB32(secretBytes[secretBytes.length - 1]?.secret),
+		version: secretBytes[secretBytes.length - 1]?.version,
+	};
+
 	Bun.write("secrets/secrets.json", JSON.stringify(formattedData, null, 2));
+	Bun.write(
+		"secrets/secretsBase32.json",
+		JSON.stringify(secretBase32, null, 2),
+	);
 	Bun.write("secrets/secretBytes.json", JSON.stringify(secretBytes));
 	Bun.write("secrets/secretDict.json", JSON.stringify(secretDict));
 
